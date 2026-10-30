@@ -1,0 +1,83 @@
+name: Prototype review feedback
+description: Feedback on the KingslakeAI proactive inventory management prototype
+title: "[Review] "
+labels: ["prototype-review"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reviewing the prototype: https://laksiri-fernando.github.io/proactive-inventory/
+        One issue per point makes it easier to track. All data in the prototype is fictitious demo data.
+
+  - type: dropdown
+    id: screen
+    attributes:
+      label: Screen
+      description: Where did you see this?
+      options:
+        - Overview
+        - Risk alerts
+        - Ask KingslakeAI (plain-language questions)
+        - Materials / material detail panel
+        - Production orders
+        - Suppliers
+        - Supplier inbox
+        - Reserved stock
+        - Obsolescence
+        - Safety buffers
+        - Top bar ("Plan arrivals on" switch)
+        - Whole prototype / general
+    validations:
+      required: true
+
+  - type: dropdown
+    id: type
+    attributes:
+      label: Type of feedback
+      options:
+        - Something is broken or doesn't work
+        - Numbers or risk logic look wrong
+        - Missing capability or information
+        - Hard to understand / usability
+        - Wording or terminology
+        - Visual design
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: feedback
+    attributes:
+      label: What did you notice?
+      description: Describe what you saw. Screenshots help — paste or drag them in here.
+      placeholder: e.g. On the SS17-4-D25 alert, the alternate vendor is shown as viable but...
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: What would you expect or suggest instead?
+      description: How should it work, read or look? Mention how planners or buyers actually work today if relevant.
+    validations:
+      required: false
+
+  - type: dropdown
+    id: priority
+    attributes:
+      label: How important is this for the customer demo?
+      options:
+        - Must fix before showing to customers
+        - Should fix
+        - Nice to have
+    validations:
+      required: true
+
+  - type: input
+    id: role
+    attributes:
+      label: Your perspective
+      description: Optional — helps weigh the feedback.
+      placeholder: e.g. Planning, Procurement, ERP consultant, Sales
+    validations:
+      required: false
