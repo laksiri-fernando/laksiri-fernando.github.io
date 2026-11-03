@@ -63,95 +63,91 @@ export function Overview() {
         </div>
       )}
 
-      <div className="grid two">
-        <Card title="Needs attention" subtitle="Ordered by severity, then by the date a decision is needed" actions={<button className="btn ghost" onClick={() => go('alerts')}>All alerts <ArrowRight size={14} /></button>} flush>
-          <div className="alert-list">
-            {open.slice(0, 6).map((a) => (
-              <button key={a.id} className="alert-row" onClick={() => go('alerts', { alertId: a.id })}>
-                <span className={`sev-bar ${a.severity}`} />
-                <div className="body">
-                  <span className="title">{a.title}</span>
-                  <span className="secondary small">{a.summary}</span>
-                  <span className="meta">
-                    <SeverityBadge severity={a.severity} />
-                    <span>{a.type}</span>
-                    {a.decideBy && <span>· decide by {fmtDate(a.decideBy)}</span>}
-                  </span>
-                </div>
-              </button>
-            ))}
-          </div>
-        </Card>
-
-        <Card title="Upcoming production — material readiness" subtitle="Next jobs by start date" actions={<button className="btn ghost" onClick={() => go('orders')}>All orders <ArrowRight size={14} /></button>} flush>
-          <div className="table-wrap">
-            <table>
-              <thead><tr><th>Order</th><th>Start</th><th>Customer</th><th>Status</th></tr></thead>
-              <tbody>
-                {upcoming.slice(0, 7).map((o) => {
-                  const s = orderSeverity(o.id, alerts);
-                  return (
-                    <tr key={o.id} className="clickable" onClick={() => go('orders')}>
-                      <td><span className="code">{o.id}</span><div className="small muted">{o.product}</div></td>
-                      <td className="nowrap">{fmtDate(o.jobStart)}<div className="small muted">in {daysBetween(AS_OF, o.jobStart)} d</div></td>
-                      <td>{o.customer} <SectorTag sector={o.sector} /></td>
-                      <td>
-                        <SeverityBadge severity={s.severity} label={s.severity === 'ok' ? 'Ready' : undefined} />
-                        {s.alerts.length > 0 && <div className="small muted" style={{ marginTop: 2 }}>{[...new Set(s.alerts.map((a) => a.material.code))].join(', ')}</div>}
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
-        </Card>
-      </div>
-
-      <div className="grid two">
-        <Card title="Signals from supplier emails" subtitle="Unstructured correspondence turned into structured updates" actions={<button className="btn ghost" onClick={() => go('inbox')}>Inbox <ArrowRight size={14} /></button>} flush>
-          <div className="alert-list">
-            {supplierEmails.slice(0, 4).map((e) => (
-              <div key={e.id} className="alert-row" style={{ cursor: 'default' }}>
-                <Mail size={16} style={{ color: 'var(--accent)', marginTop: 2, flex: 'none' }} />
-                <div className="body">
-                  <span className="title">{e.extracted.summary}</span>
-                  <span className="meta">
-                    <span className="tag">{e.extracted.type}</span>
-                    {supplierById.get(e.supplierId)!.name} · {fmtDate(e.received)} · {Math.round(e.extracted.confidence * 100)}% confidence
-                    {e.extracted.materialId && (
-                      <button className="btn ghost small" style={{ padding: '0 4px' }} onClick={() => openMaterial(e.extracted.materialId!)}>
-                        <span className="code">{materialById.get(e.extracted.materialId)!.code}</span>
-                      </button>
-                    )}
-                  </span>
-                </div>
+      <Card title="Needs attention" subtitle="Ordered by severity, then by the date a decision is needed" actions={<button className="btn ghost" onClick={() => go('alerts')}>All alerts <ArrowRight size={14} /></button>} flush>
+        <div className="alert-list">
+          {open.slice(0, 6).map((a) => (
+            <button key={a.id} className="alert-row" onClick={() => go('alerts', { alertId: a.id })}>
+              <span className={`sev-bar ${a.severity}`} />
+              <div className="body">
+                <span className="title">{a.title}</span>
+                <span className="secondary small">{a.summary}</span>
+                <span className="meta">
+                  <SeverityBadge severity={a.severity} />
+                  <span>{a.type}</span>
+                  {a.decideBy && <span>· decide by {fmtDate(a.decideBy)}</span>}
+                </span>
               </div>
-            ))}
-          </div>
-        </Card>
+            </button>
+          ))}
+        </div>
+      </Card>
 
-        <Card title="Obsolete & excess stock" subtitle="Illustrative business case from the scope document">
-          <div className="kv" style={{ marginBottom: 16 }}>
-            <div><span className="k">Historic cost</span><span className="v">≈ $100k / yr</span></div>
-            <div><span className="k">Target</span><span className="v">≈ $50k / yr</span></div>
-            <div><span className="k">Flagged now</span><span className="v">{fmtMoney(obsValue)}</span></div>
-          </div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-            {obs.map((o) => (
-              <button key={o.material.id + o.kind} className="alt" style={{ textAlign: 'left', cursor: 'pointer', background: 'transparent' }} onClick={() => openMaterial(o.material.id)}>
-                <div className="alt-head">
-                  <span className="code">{o.material.code}</span>
-                  <span className="tag">{o.kind}</span>
-                  <span className="muted small" style={{ marginLeft: 'auto' }}>{fmtMoney(o.valueAtRisk)}</span>
-                </div>
-                <div className="small secondary">{o.detail}</div>
-              </button>
-            ))}
-          </div>
-          <p className="small muted" style={{ marginBottom: 0 }}>How much historic cost is addressable by earlier visibility is to be validated during the pilot.</p>
-        </Card>
-      </div>
+      <Card title="Upcoming production — material readiness" subtitle="Next jobs by start date" actions={<button className="btn ghost" onClick={() => go('orders')}>All orders <ArrowRight size={14} /></button>} flush>
+        <div className="table-wrap">
+          <table>
+            <thead><tr><th>Order</th><th>Start</th><th>Customer</th><th>Status</th></tr></thead>
+            <tbody>
+              {upcoming.slice(0, 7).map((o) => {
+                const s = orderSeverity(o.id, alerts);
+                return (
+                  <tr key={o.id} className="clickable" onClick={() => go('orders')}>
+                    <td><span className="code">{o.id}</span><div className="small muted">{o.product}</div></td>
+                    <td className="nowrap">{fmtDate(o.jobStart)}<div className="small muted">in {daysBetween(AS_OF, o.jobStart)} d</div></td>
+                    <td>{o.customer} <SectorTag sector={o.sector} /></td>
+                    <td>
+                      <SeverityBadge severity={s.severity} label={s.severity === 'ok' ? 'Ready' : undefined} />
+                      {s.alerts.length > 0 && <div className="small muted" style={{ marginTop: 2 }}>{[...new Set(s.alerts.map((a) => a.material.code))].join(', ')}</div>}
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      </Card>
+
+      <Card title="Obsolete & excess stock" subtitle="Illustrative business case from the scope document">
+        <div className="kv" style={{ marginBottom: 16 }}>
+          <div><span className="k">Historic cost</span><span className="v">≈ $100k / yr</span></div>
+          <div><span className="k">Target</span><span className="v">≈ $50k / yr</span></div>
+          <div><span className="k">Flagged now</span><span className="v">{fmtMoney(obsValue)}</span></div>
+        </div>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+          {obs.map((o) => (
+            <button key={o.material.id + o.kind} className="alt" style={{ textAlign: 'left', cursor: 'pointer', background: 'transparent' }} onClick={() => openMaterial(o.material.id)}>
+              <div className="alt-head">
+                <span className="code">{o.material.code}</span>
+                <span className="tag">{o.kind}</span>
+                <span className="muted small" style={{ marginLeft: 'auto' }}>{fmtMoney(o.valueAtRisk)}</span>
+              </div>
+              <div className="small secondary">{o.detail}</div>
+            </button>
+          ))}
+        </div>
+        <p className="small muted" style={{ marginBottom: 0 }}>How much historic cost is addressable by earlier visibility is to be validated during the pilot.</p>
+      </Card>
+
+      <Card title="Signals from supplier emails" subtitle="Unstructured correspondence turned into structured updates" actions={<button className="btn ghost" onClick={() => go('inbox')}>Inbox <ArrowRight size={14} /></button>} flush>
+        <div className="alert-list">
+          {supplierEmails.slice(0, 4).map((e) => (
+            <div key={e.id} className="alert-row" style={{ cursor: 'default' }}>
+              <Mail size={16} style={{ color: 'var(--accent)', marginTop: 2, flex: 'none' }} />
+              <div className="body">
+                <span className="title">{e.extracted.summary}</span>
+                <span className="meta">
+                  <span className="tag">{e.extracted.type}</span>
+                  {supplierById.get(e.supplierId)!.name} · {fmtDate(e.received)} · {Math.round(e.extracted.confidence * 100)}% confidence
+                  {e.extracted.materialId && (
+                    <button className="btn ghost small" style={{ padding: '0 4px' }} onClick={() => openMaterial(e.extracted.materialId!)}>
+                      <span className="code">{materialById.get(e.extracted.materialId)!.code}</span>
+                    </button>
+                  )}
+                </span>
+              </div>
+            </div>
+          ))}
+        </div>
+      </Card>
     </>
   );
 }

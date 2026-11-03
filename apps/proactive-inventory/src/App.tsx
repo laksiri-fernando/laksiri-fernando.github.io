@@ -65,7 +65,7 @@ export default function App() {
           <div className="brand-mark">K</div>
           <div>
             <div className="brand-name">KingslakeAI</div>
-            <div className="brand-sub">Material Risk &amp; Monitoring</div>
+            <div className="brand-sub">AI-Assisted Proactive Inventory Management</div>
           </div>
         </div>
         {NAV.map((g) => (
