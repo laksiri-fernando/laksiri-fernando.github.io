@@ -1,5 +1,5 @@
 import {
-  AlertTriangle, Bot, Boxes, ClipboardList, Factory, Hourglass, Inbox as InboxIcon, LayoutDashboard, Lock, Menu, Shield, Truck,
+  AlertTriangle, Bot, Boxes, ClipboardList, Factory, Hourglass, Inbox as InboxIcon, LayoutDashboard, Lock, Menu, Shield, Sparkles, Truck,
   type LucideIcon,
 } from 'lucide-react';
 import { useState } from 'react';
@@ -101,6 +101,9 @@ export default function App() {
               ))}
             </div>
           </div>
+          <button className={`btn primary ask-btn ${view === 'assistant' ? 'current' : ''}`} onClick={() => go('assistant')} aria-current={view === 'assistant' ? 'page' : undefined}>
+            <Sparkles size={15} aria-hidden /> Ask KingslakeAI
+          </button>
         </header>
         <main className="content">
           <Current />
