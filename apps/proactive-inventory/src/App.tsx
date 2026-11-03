@@ -6,6 +6,7 @@ import { useState } from 'react';
 import { AS_OF } from './data/mockData';
 import { fmtDate } from './engine/dates';
 import { ARRIVAL_BASIS_LABEL, type ArrivalBasis } from './engine/risk';
+import logo from './assets/kingslake-logo.png';
 import { MaterialDrawer } from './components/MaterialDrawer';
 import { useApp, type View } from './state';
 import { Alerts } from './views/Alerts';
@@ -64,7 +65,7 @@ export default function App() {
     <div className="app">
       <nav className={`sidebar ${menuOpen ? 'open' : ''}`}>
         <div className="brand">
-          <div className="brand-mark">K</div>
+          <div className="brand-mark"><img src={logo} alt="Kingslake" /></div>
           <div>
             <div className="brand-name">KingslakeAI</div>
             <div className="brand-sub">Proactive Inventory Management</div>
