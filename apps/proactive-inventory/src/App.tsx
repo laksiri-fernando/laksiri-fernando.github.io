@@ -65,7 +65,7 @@ export default function App() {
           <div className="brand-mark">K</div>
           <div>
             <div className="brand-name">KingslakeAI</div>
-            <div className="brand-sub">AI-Assisted Proactive Inventory Management</div>
+            <div className="brand-sub">Proactive Inventory Management</div>
           </div>
         </div>
         {NAV.map((g) => (
@@ -80,14 +80,14 @@ export default function App() {
           </div>
         ))}
         <div className="sidebar-foot">
-          Prototype · demo data for a sensor manufacturer (aerospace &amp; industrial). Read-only — no orders are placed.
+          Prototype · with demo data
         </div>
       </nav>
 
       <div className="main">
         <header className="topbar">
           <button className="btn ghost menu-btn" onClick={() => setMenuOpen((o) => !o)} aria-label="Menu"><Menu size={18} /></button>
-          <span className="sync"><span className="dot" /> Kingslake ERP · synced {fmtDate(AS_OF, true)} 06:00</span>
+          <span className="sync"><span className="dot" /> ERP · synced {fmtDate(AS_OF, true)} 06:00</span>
           <span className="spacer" />
           <div className="basis">
             <span>Plan arrivals on</span>
