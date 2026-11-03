@@ -42,7 +42,7 @@ const SEV_BAR: { key: Severity; label: string; color: string }[] = [
 ];
 
 export function Overview() {
-  const { alerts, basis, go, alertState } = useApp();
+  const { alerts, basis, alertState } = useApp();
 
   // Orders at risk in the next 30 days, on the selected basis and on PO due dates alone.
   const in30 = addDays(AS_OF, 30);
@@ -76,7 +76,6 @@ export function Overview() {
     <>
       <div className="page-head">
         <h1>Overview</h1>
-        <button className="btn primary" onClick={() => go('assistant')}>Ask KingslakeAI <ArrowRight size={15} /></button>
       </div>
 
       <div className="kpi-grid">
