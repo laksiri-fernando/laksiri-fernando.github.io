@@ -20,6 +20,7 @@ body:
         - Ask KingslakeAI (plain-language questions)
         - Materials / material detail panel
         - Production orders
+        - Purchase orders
         - Suppliers
         - Supplier inbox
         - Reserved stock

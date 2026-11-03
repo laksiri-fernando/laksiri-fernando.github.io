@@ -2,7 +2,7 @@ import { Mail } from 'lucide-react';
 import { useState } from 'react';
 import { productionOrders, purchaseOrders } from '../data/mockData';
 import { fmtDate, fmtMoney, fmtNum } from '../engine/dates';
-import { ARRIVAL_BASIS_LABEL, estimateArrival, lateBasis, materialById, supplierById, supplierStats } from '../engine/risk';
+import { estimateArrival, lateBasis, materialById, supplierById, supplierStats } from '../engine/risk';
 import { Meter, scoreColor, Stat } from '../components/ui';
 import { useApp } from '../state';
 
@@ -32,13 +32,7 @@ export function PurchaseOrders() {
   return (
     <>
       <div className="page-head">
-        <div>
-          <h1>Purchase orders</h1>
-          <p>
-            Open POs with their expected arrival — from supplier emails where the supplier has given a date, otherwise from each supplier's delivery history.
-            Estimates use: <b>{ARRIVAL_BASIS_LABEL[lb]}</b>{basis === 'due' && ' (lateness is still estimated here while planning on PO due dates)'}.
-          </p>
-        </div>
+        <h1>Purchase orders</h1>
       </div>
 
       <div className="grid kpis">
