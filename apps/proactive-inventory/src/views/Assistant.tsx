@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from 'react';
 import { answerQuestion, SUGGESTED_QUESTIONS, type Answer } from '../engine/nlq';
 import { ARRIVAL_BASIS_LABEL } from '../engine/risk';
 import { SimpleTable } from '../components/ui';
+import logo from '../assets/kingslake-logo.png';
 import { useApp } from '../state';
 
 interface Msg { role: 'user' | 'ai'; text: string; answer?: Answer }
@@ -57,7 +58,7 @@ export function Assistant() {
         <div className="chat-log">
           {log.map((m, i) => (
             <div key={i} className={`msg ${m.role}`}>
-              {m.role === 'ai' && <div className="avatar">K</div>}
+              {m.role === 'ai' && <div className="avatar"><img src={logo} alt="" /></div>}
               <div className="bubble">
                 <div>{m.text}</div>
                 {m.answer?.bullets && m.answer.bullets.length > 0 && (
@@ -83,7 +84,7 @@ export function Assistant() {
           ))}
           {thinking && (
             <div className="msg ai">
-              <div className="avatar">K</div>
+              <div className="avatar"><img src={logo} alt="" /></div>
               <div className="bubble"><span className="typing"><i /><i /><i /></span></div>
             </div>
           )}
