@@ -1,7 +1,7 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
 import { computeAlerts, type Alert, type ArrivalBasis } from './engine/risk';
 
-export type View = 'overview' | 'alerts' | 'materials' | 'orders' | 'suppliers' | 'allocation' | 'obsolescence' | 'buffers' | 'inbox' | 'assistant';
+export type View = 'overview' | 'alerts' | 'materials' | 'orders' | 'pos' | 'suppliers' | 'allocation' | 'obsolescence' | 'buffers' | 'inbox' | 'assistant';
 
 export interface AlertState {
   status: 'new' | 'acknowledged' | 'assigned' | 'resolved';

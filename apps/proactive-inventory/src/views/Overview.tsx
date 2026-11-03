@@ -1,9 +1,13 @@
-import { AlertOctagon, ArrowRight, Boxes, CalendarClock, Mail, PackageX, ShieldCheck, Sparkles, Truck } from 'lucide-react';
-import { AS_OF, productionOrders, purchaseOrders, supplierEmails } from '../data/mockData';
-import { addDays, daysBetween, fmtDate, fmtMoney } from '../engine/dates';
-import { computeAlerts, estimateArrival, materialById, obsolescenceItems, supplierById, supplierStats, SEVERITY_RANK, type Alert, type Severity } from '../engine/risk';
-import { Card, SectorTag, SeverityBadge, Stat } from '../components/ui';
-import { useApp } from '../state';
+import { AlertOctagon, ArrowRight, Boxes, CalendarClock, Mail, PackageX, Truck, TrendingDown, type LucideIcon } from 'lucide-react';
+import type { ReactNode } from 'react';
+import { AS_OF, productionOrders, purchaseOrders } from '../data/mockData';
+import { addDays, fmtDate, fmtMoney } from '../engine/dates';
+import {
+  computeAlerts, estimateArrival, lateBasis, obsolescenceItems, supplierById, supplierStats, SEVERITY_RANK,
+  type Alert, type Severity,
+} from '../engine/risk';
+import { Meter, scoreColor, SeverityBadge } from '../components/ui';
+import { useApp, type View } from '../state';
 
 export function orderSeverity(orderId: string, alerts: Alert[]): { severity: Severity | 'ok'; alerts: Alert[] } {
   const hits = alerts.filter((a) => a.type !== 'End of life' && a.affectedOrders.some((o) => o.order.id === orderId));
@@ -11,143 +15,187 @@ export function orderSeverity(orderId: string, alerts: Alert[]): { severity: Sev
   return { severity: hits.reduce((s, a) => (SEVERITY_RANK[a.severity] < SEVERITY_RANK[s] ? a.severity : s), 'low' as Severity), alerts: hits };
 }
 
+function KpiCard({ icon: Icon, label, value, caption, children, footer, to, wide }: {
+  icon: LucideIcon; label: string; value: ReactNode; caption: ReactNode; children: ReactNode; footer: string; to: View; wide?: boolean;
+}) {
+  const { go } = useApp();
+  return (
+    <button className={`card kpi-card ${wide ? 'wide' : ''}`} onClick={() => go(to)}>
+      <div className="kpi-top">
+        <span className="kpi-icon"><Icon size={18} aria-hidden /></span>
+        <span className="kpi-label">{label}</span>
+      </div>
+      <div>
+        <div className="kpi-value">{value}</div>
+        <div className="kpi-caption">{caption}</div>
+      </div>
+      <div className="kpi-detail">{children}</div>
+      <span className="kpi-footer">{footer} <ArrowRight size={14} aria-hidden /></span>
+    </button>
+  );
+}
+
+const SEV_BAR: { key: Severity; label: string; color: string }[] = [
+  { key: 'critical', label: 'Critical', color: 'var(--critical)' },
+  { key: 'high', label: 'High', color: 'var(--serious)' },
+  { key: 'medium', label: 'Medium', color: 'var(--warning)' },
+];
+
 export function Overview() {
-  const { alerts, basis, go, alertState, openMaterial } = useApp();
+  const { alerts, basis, go, alertState } = useApp();
+
+  // Orders at risk in the next 30 days, on the selected basis and on PO due dates alone.
   const in30 = addDays(AS_OF, 30);
-  const upcoming = productionOrders.filter((o) => o.jobStart >= AS_OF).sort((a, b) => a.jobStart.localeCompare(b.jobStart));
-  const atRisk30 = upcoming.filter((o) => o.jobStart <= in30 && orderSeverity(o.id, alerts).severity !== 'ok');
-  const flaggedMaterials = new Set(alerts.map((a) => a.material.id));
-  const late = purchaseOrders.map((p) => estimateArrival(p, basis === 'due' ? 'p50' : basis)).filter((a) => a.slipDays > 0);
-  const obs = obsolescenceItems().filter((o) => o.kind !== 'End of life');
-  const obsValue = obs.reduce((s, o) => s + o.valueAtRisk, 0);
-  const stats = [...supplierStats.values()].filter(Boolean);
-  const onTime = stats.reduce((s, x) => s + x!.onTimeRate * x!.count, 0) / stats.reduce((s, x) => s + x!.count, 0);
+  const window30 = productionOrders.filter((o) => o.jobStart >= AS_OF && o.jobStart <= in30).sort((a, b) => a.jobStart.localeCompare(b.jobStart));
+  const atRisk = window30.map((o) => ({ o, s: orderSeverity(o.id, alerts) })).filter((x) => x.s.severity !== 'ok');
+  const dueAlerts = computeAlerts('due');
+  const atRiskOnDue = window30.filter((o) => orderSeverity(o.id, dueAlerts).severity !== 'ok').length;
+
   const open = alerts.filter((a) => (alertState[a.id]?.status ?? 'new') !== 'resolved');
-  const critical = open.filter((a) => a.severity === 'critical').length;
-  // What the ERP alone would show: every PO on its due date, no supplier signals.
-  const countShortOrders = (list: Alert[]) =>
-    new Set(list.filter((a) => a.type === 'Shortage' || a.type === 'Supplier delay').flatMap((a) => a.affectedOrders.map((o) => o.order.id))).size;
-  const erpOnly = countShortOrders(computeAlerts('due'));
-  const withAi = countShortOrders(alerts);
+  const materialsFlagged = new Set(open.map((a) => a.material.id)).size;
+  const nextDecision = [...open].filter((a) => a.decideBy).sort((a, b) => a.decideBy!.localeCompare(b.decideBy!))[0];
+
+  const late = purchaseOrders
+    .map((p) => estimateArrival(p, lateBasis(basis)))
+    .filter((a) => a.slipDays > 0)
+    .sort((a, b) => b.slipDays - a.slipDays);
+  const confirmed = late.filter((l) => l.source === 'Supplier email').length;
+
+  const obs = obsolescenceItems();
+  const expiry = obs.filter((o) => o.kind === 'Expiry');
+  const excess = obs.filter((o) => o.kind === 'Excess stock');
+  const eol = obs.filter((o) => o.kind === 'End of life');
+  const sum = (xs: typeof obs) => xs.reduce((s, o) => s + o.valueAtRisk, 0);
+  const writeOff = sum(expiry) + sum(excess);
+
+  const ranked = [...supplierStats.values()].filter((s) => s !== null).sort((a, b) => a!.score - b!.score);
+  const onTime = ranked.reduce((s, x) => s + x!.onTimeRate * x!.count, 0) / ranked.reduce((s, x) => s + x!.count, 0);
+  const worsening = ranked.filter((s) => s!.trend === 'worsening').length;
 
   return (
     <>
       <div className="page-head">
-        <div>
-          <h1>Material risk overview</h1>
-          <p>Production plan, stock and open purchase orders in one view — with risks flagged before they turn into shortages. As of {fmtDate(AS_OF, true)}.</p>
-        </div>
+        <h1>Overview</h1>
         <button className="btn primary" onClick={() => go('assistant')}>Ask KingslakeAI <ArrowRight size={15} /></button>
       </div>
 
-      <div className="banner">
-        <ShieldCheck size={18} style={{ color: 'var(--accent)', flex: 'none' }} />
-        <span><b>Decision support, not autopilot.</b> KingslakeAI reads ERP data and supplier emails, surfaces risks and options, and drafts follow-ups. It never places purchase orders or changes the production schedule.</span>
-      </div>
-
-      <div className="grid kpis">
-        <Stat label="Orders at risk · next 30 days" icon={CalendarClock} value={atRisk30.length} sub={`of ${upcoming.filter((o) => o.jobStart <= in30).length} orders starting by ${fmtDate(in30)}`} onClick={() => go('orders')} />
-        <Stat label="Open alerts" icon={AlertOctagon} tone="var(--critical)" value={open.length} sub={`${critical} critical · ${flaggedMaterials.size} materials`} onClick={() => go('alerts')} />
-        <Stat label="POs expected late" icon={Truck} value={late.length} sub={`of ${purchaseOrders.length} open POs · ${late.filter((l) => l.source === 'Supplier email').length} confirmed by supplier`} onClick={() => go('suppliers')} />
-        <Stat label="Stock at risk of write-off" icon={PackageX} value={fmtMoney(obsValue)} sub={`${obs.length} items · expiry & excess`} onClick={() => go('obsolescence')} />
-        <Stat label="Supplier on-time rate" icon={Boxes} value={`${Math.round(onTime * 100)}%`} sub="PO due vs goods receipt, ±2 days" onClick={() => go('suppliers')} />
-      </div>
-
-      {basis !== 'due' && withAi > erpOnly && (
-        <div className="banner" style={{ background: 'var(--surface)', borderColor: 'var(--border)' }}>
-          <Sparkles size={18} style={{ color: 'var(--accent)', flex: 'none' }} />
-          <span>
-            Planning on PO due dates alone, the ERP shows <b>{erpOnly}</b> production order{erpOnly === 1 ? '' : 's'} short of material.
-            Adding supplier emails and delivery history, KingslakeAI expects <b>{withAi}</b> — flagged weeks before the jobs start.
-          </span>
-        </div>
-      )}
-
-      <Card title="Needs attention" subtitle="Ordered by severity, then by the date a decision is needed" actions={<button className="btn ghost" onClick={() => go('alerts')}>All alerts <ArrowRight size={14} /></button>} flush>
-        <div className="alert-list">
-          {open.slice(0, 6).map((a) => (
-            <button key={a.id} className="alert-row" onClick={() => go('alerts', { alertId: a.id })}>
-              <span className={`sev-bar ${a.severity}`} />
-              <div className="body">
-                <span className="title">{a.title}</span>
-                <span className="secondary small">{a.summary}</span>
-                <span className="meta">
-                  <SeverityBadge severity={a.severity} />
-                  <span>{a.type}</span>
-                  {a.decideBy && <span>· decide by {fmtDate(a.decideBy)}</span>}
-                </span>
-              </div>
-            </button>
-          ))}
-        </div>
-      </Card>
-
-      <Card title="Upcoming production — material readiness" subtitle="Next jobs by start date" actions={<button className="btn ghost" onClick={() => go('orders')}>All orders <ArrowRight size={14} /></button>} flush>
-        <div className="table-wrap">
-          <table>
-            <thead><tr><th>Order</th><th>Start</th><th>Customer</th><th>Status</th></tr></thead>
-            <tbody>
-              {upcoming.slice(0, 7).map((o) => {
-                const s = orderSeverity(o.id, alerts);
-                return (
-                  <tr key={o.id} className="clickable" onClick={() => go('orders')}>
-                    <td><span className="code">{o.id}</span><div className="small muted">{o.product}</div></td>
-                    <td className="nowrap">{fmtDate(o.jobStart)}<div className="small muted">in {daysBetween(AS_OF, o.jobStart)} d</div></td>
-                    <td>{o.customer} <SectorTag sector={o.sector} /></td>
-                    <td>
-                      <SeverityBadge severity={s.severity} label={s.severity === 'ok' ? 'Ready' : undefined} />
-                      {s.alerts.length > 0 && <div className="small muted" style={{ marginTop: 2 }}>{[...new Set(s.alerts.map((a) => a.material.code))].join(', ')}</div>}
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
-      </Card>
-
-      <Card title="Obsolete & excess stock" subtitle="Illustrative business case from the scope document">
-        <div className="kv" style={{ marginBottom: 16 }}>
-          <div><span className="k">Historic cost</span><span className="v">≈ $100k / yr</span></div>
-          <div><span className="k">Target</span><span className="v">≈ $50k / yr</span></div>
-          <div><span className="k">Flagged now</span><span className="v">{fmtMoney(obsValue)}</span></div>
-        </div>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-          {obs.map((o) => (
-            <button key={o.material.id + o.kind} className="alt" style={{ textAlign: 'left', cursor: 'pointer', background: 'transparent' }} onClick={() => openMaterial(o.material.id)}>
-              <div className="alt-head">
-                <span className="code">{o.material.code}</span>
-                <span className="tag">{o.kind}</span>
-                <span className="muted small" style={{ marginLeft: 'auto' }}>{fmtMoney(o.valueAtRisk)}</span>
-              </div>
-              <div className="small secondary">{o.detail}</div>
-            </button>
-          ))}
-        </div>
-        <p className="small muted" style={{ marginBottom: 0 }}>How much historic cost is addressable by earlier visibility is to be validated during the pilot.</p>
-      </Card>
-
-      <Card title="Signals from supplier emails" subtitle="Unstructured correspondence turned into structured updates" actions={<button className="btn ghost" onClick={() => go('inbox')}>Inbox <ArrowRight size={14} /></button>} flush>
-        <div className="alert-list">
-          {supplierEmails.slice(0, 4).map((e) => (
-            <div key={e.id} className="alert-row" style={{ cursor: 'default' }}>
-              <Mail size={16} style={{ color: 'var(--accent)', marginTop: 2, flex: 'none' }} />
-              <div className="body">
-                <span className="title">{e.extracted.summary}</span>
-                <span className="meta">
-                  <span className="tag">{e.extracted.type}</span>
-                  {supplierById.get(e.supplierId)!.name} · {fmtDate(e.received)} · {Math.round(e.extracted.confidence * 100)}% confidence
-                  {e.extracted.materialId && (
-                    <button className="btn ghost small" style={{ padding: '0 4px' }} onClick={() => openMaterial(e.extracted.materialId!)}>
-                      <span className="code">{materialById.get(e.extracted.materialId)!.code}</span>
-                    </button>
-                  )}
-                </span>
-              </div>
+      <div className="kpi-grid">
+        <KpiCard
+          icon={CalendarClock}
+          label="Orders at risk · next 30 days"
+          value={atRisk.length}
+          caption={`of ${window30.length} production orders starting by ${fmtDate(in30)}`}
+          footer="View production orders"
+          to="orders"
+        >
+          {basis !== 'due' ? (
+            <div className="kpi-note">
+              {atRisk.length > atRiskOnDue
+                ? <>PO due dates alone show <b>{atRiskOnDue}</b> — <b>{atRisk.length - atRiskOnDue}</b> more flagged from supplier signals</>
+                : <>Same as planning on PO due dates</>}
             </div>
-          ))}
-        </div>
-      </Card>
+          ) : (
+            <div className="kpi-note">Planning on PO due dates only — switch to “Typical delay” to include supplier signals</div>
+          )}
+          <ul className="kpi-list">
+            {atRisk.slice(0, 3).map(({ o, s }) => (
+              <li key={o.id}>
+                <span><span className="code">{o.id}</span> <span className="muted">· {fmtDate(o.jobStart)}</span></span>
+                <SeverityBadge severity={s.severity} />
+              </li>
+            ))}
+          </ul>
+        </KpiCard>
+
+        <KpiCard
+          icon={AlertOctagon}
+          label="Open alerts"
+          value={open.length}
+          caption={`across ${materialsFlagged} materials`}
+          footer="View risk alerts"
+          to="alerts"
+        >
+          <div className="sevbar" role="img" aria-label={SEV_BAR.map((b) => `${open.filter((a) => a.severity === b.key).length} ${b.label}`).join(', ')}>
+            {SEV_BAR.map((b) => {
+              const n = open.filter((a) => a.severity === b.key).length;
+              return n ? <span key={b.key} style={{ flex: n, background: b.color }} /> : null;
+            })}
+          </div>
+          <div className="sev-legend">
+            {SEV_BAR.map((b) => (
+              <span key={b.key}><i style={{ background: b.color }} /> {open.filter((a) => a.severity === b.key).length} {b.label.toLowerCase()}</span>
+            ))}
+          </div>
+          {nextDecision && (
+            <div className="kpi-note">Next decision by <b>{fmtDate(nextDecision.decideBy!)}</b>: {nextDecision.material.code} {nextDecision.type.toLowerCase()}</div>
+          )}
+        </KpiCard>
+
+        <KpiCard
+          icon={Truck}
+          label="POs expected late"
+          value={late.length}
+          caption={`of ${purchaseOrders.length} open purchase orders`}
+          footer="View purchase orders"
+          to="pos"
+        >
+          <ul className="kpi-list">
+            {late.slice(0, 3).map((a) => (
+              <li key={a.po.id}>
+                <span>
+                  <span className="code">{a.po.id}</span> <span className="muted">· {supplierById.get(a.po.supplierId)!.name}</span>
+                  {a.source === 'Supplier email' && <Mail size={12} aria-label="confirmed by supplier email" style={{ marginLeft: 4, verticalAlign: -1, color: 'var(--accent)' }} />}
+                </span>
+                <span className="badge sev-high">+{a.slipDays} d</span>
+              </li>
+            ))}
+          </ul>
+          <div className="kpi-note">{confirmed} confirmed by supplier email · {late.length - confirmed} estimated from delivery history</div>
+        </KpiCard>
+
+        <KpiCard
+          icon={PackageX}
+          label="Stock at risk of write-off"
+          value={fmtMoney(writeOff)}
+          caption="expiring or slow-moving stock with no planned use"
+          footer="View obsolescence"
+          to="obsolescence"
+          wide
+        >
+          <ul className="kpi-list">
+            <li><span>Shelf-life expiry <span className="muted">· {expiry.length} lot{expiry.length === 1 ? '' : 's'}</span></span><b className="tnum">{fmtMoney(sum(expiry))}</b></li>
+            <li><span>Excess / slow-moving <span className="muted">· {excess.length} item{excess.length === 1 ? '' : 's'}</span></span><b className="tnum">{fmtMoney(sum(excess))}</b></li>
+            {eol.map((e) => (
+              <li key={e.material.id}><span>Last-time-buy decision <span className="muted">· {e.material.code} by {fmtDate(e.date!)}</span></span><b className="tnum">{fmtMoney(e.valueAtRisk)}</b></li>
+            ))}
+          </ul>
+          <div className="kpi-note">Historic obsolete &amp; excess cost ≈ $100k / year — target ≈ $50k</div>
+        </KpiCard>
+
+        <KpiCard
+          icon={Boxes}
+          label="Supplier on-time rate"
+          value={`${Math.round(onTime * 100)}%`}
+          caption="PO due date vs goods receipt, within ±2 days"
+          footer="View supplier reliability"
+          to="suppliers"
+          wide
+        >
+          <ul className="kpi-list">
+            {ranked.slice(0, 3).map((st) => (
+              <li key={st!.supplierId}>
+                <span>{supplierById.get(st!.supplierId)!.name}</span>
+                <span className="kpi-score">
+                  {st!.trend === 'worsening' && <TrendingDown size={13} aria-label="worsening" style={{ color: 'var(--serious-text)' }} />}
+                  <span style={{ width: 70 }}><Meter value={st!.score} color={scoreColor(st!.score)} /></span>
+                  <b className="tnum">{st!.score}</b>
+                </span>
+              </li>
+            ))}
+          </ul>
+          <div className="kpi-note">Lowest reliability scores shown · {worsening} supplier{worsening === 1 ? '' : 's'} getting worse</div>
+        </KpiCard>
+      </div>
     </>
   );
 }

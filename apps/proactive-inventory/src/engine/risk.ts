@@ -122,6 +122,14 @@ export interface ArrivalEstimate {
   signal?: SupplierEmail;
 }
 
+/**
+ * Basis for judging whether a PO is late. On the plain "PO due date" view every PO is
+ * on time by definition, so lateness is still estimated from supplier signals and history.
+ */
+export function lateBasis(basis: ArrivalBasis): ArrivalBasis {
+  return basis === 'due' ? 'p50' : basis;
+}
+
 export function estimateArrival(po: PurchaseOrder, basis: ArrivalBasis): ArrivalEstimate {
   const signal = supplierEmails.find(
     (e) => e.extracted.poId === po.id && (e.extracted.type === 'Delay' || e.extracted.type === 'Confirmation'),

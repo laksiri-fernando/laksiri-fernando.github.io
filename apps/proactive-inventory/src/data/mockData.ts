@@ -67,10 +67,10 @@ export const materials: Material[] = [
   },
   {
     id: 'M06', code: 'CBL-SH-4C', name: 'Shielded 4-core PUR cable', category: 'Interconnect', uom: 'm',
-    onHand: 3200, safetyStock: 1500, leadTimeDays: 30, moq: 1000, orderMultiple: 500, unitCost: 1.35,
+    onHand: 900, safetyStock: 1500, leadTimeDays: 30, moq: 1000, orderMultiple: 500, unitCost: 1.35,
     primarySupplierId: 'SUP-06', qualification: 'Industrial',
     alternates: [{ supplierId: 'SUP-04', qualifiedFor: ['Industrial'], leadTimeDays: 14, unitCost: 1.62 }],
-    lots: [{ lotId: 'W-3302', qty: 3200, receivedDate: '2026-09-05' }], lastIssueDate: '2026-10-22',
+    lots: [{ lotId: 'W-3302', qty: 900, receivedDate: '2026-09-05' }], lastIssueDate: '2026-10-22',
   },
   {
     id: 'M07', code: 'PCB-LCA-R3', name: 'Load-cell amplifier PCB (rev 3)', category: 'Electronics', uom: 'pcs',
@@ -159,7 +159,7 @@ export const purchaseOrders: PurchaseOrder[] = [
   { id: 'PO-45122', line: 1, materialId: 'M02', supplierId: 'SUP-02', qty: 400, orderDate: '2026-10-09', dueDate: '2027-01-08', status: 'Open' },
   { id: 'PO-45131', line: 1, materialId: 'M01', supplierId: 'SUP-01', qty: 1000, orderDate: '2026-09-30', dueDate: '2026-11-25', shipDate: '2026-10-25', status: 'Shipped' },
   { id: 'PO-45140', line: 1, materialId: 'M11', supplierId: 'SUP-01', qty: 800, orderDate: '2026-10-15', dueDate: '2026-11-30', status: 'Open' },
-  { id: 'PO-45152', line: 1, materialId: 'M06', supplierId: 'SUP-06', qty: 3000, orderDate: '2026-09-22', dueDate: '2026-11-18', status: 'Open' },
+  { id: 'PO-45152', line: 1, materialId: 'M06', supplierId: 'SUP-06', qty: 3500, orderDate: '2026-09-22', dueDate: '2026-11-06', status: 'Open' },
   { id: 'PO-45160', line: 1, materialId: 'M07', supplierId: 'SUP-07', qty: 400, orderDate: '2026-10-20', dueDate: '2026-12-01', status: 'Confirmed' },
   { id: 'PO-45171', line: 1, materialId: 'M03', supplierId: 'SUP-03', qty: 500, orderDate: '2026-08-28', dueDate: '2026-12-10', status: 'Confirmed' },
   { id: 'PO-45180', line: 1, materialId: 'M10', supplierId: 'SUP-08', qty: 200, orderDate: '2026-10-16', dueDate: '2026-11-14', status: 'Open' },
@@ -203,7 +203,7 @@ export const supplierEmails: SupplierEmail[] = [
   {
     id: 'EM-304', supplierId: 'SUP-06', from: 'R. Kumar <dispatch@orioncable.example>', subject: 'RE: RE: PO 45152 status?', received: '2026-10-27',
     body: 'Sir, we are facing some shortage of copper rod this month. Production of your cable may slip by 2-3 weeks, we will try our best and revert with firm date.',
-    extracted: { type: 'Delay', poId: 'PO-45152', materialId: 'M06', newDate: '2026-12-06', confidence: 0.68, summary: 'PO-45152 likely 2–3 weeks late (copper shortage) — no firm date given.' },
+    extracted: { type: 'Delay', poId: 'PO-45152', materialId: 'M06', newDate: '2026-11-26', confidence: 0.68, summary: 'PO-45152 likely 2–3 weeks late (copper shortage) — no firm date given.' },
   },
   {
     id: 'EM-305', supplierId: 'SUP-05', from: 'Meridian Customer Service <service@meridian.example>', subject: 'Price adjustment from 1 January 2027', received: '2026-10-18',

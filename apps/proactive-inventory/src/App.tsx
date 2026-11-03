@@ -1,5 +1,5 @@
 import {
-  AlertTriangle, Bot, Boxes, Factory, Hourglass, Inbox as InboxIcon, LayoutDashboard, Lock, Menu, Shield, Truck,
+  AlertTriangle, Bot, Boxes, ClipboardList, Factory, Hourglass, Inbox as InboxIcon, LayoutDashboard, Lock, Menu, Shield, Truck,
   type LucideIcon,
 } from 'lucide-react';
 import { useState } from 'react';
@@ -16,6 +16,7 @@ import { Inbox } from './views/Inbox';
 import { Materials } from './views/Materials';
 import { Obsolescence } from './views/Obsolescence';
 import { Orders } from './views/Orders';
+import { PurchaseOrders } from './views/PurchaseOrders';
 import { Overview } from './views/Overview';
 import { Suppliers } from './views/Suppliers';
 
@@ -33,6 +34,7 @@ const NAV: { section: string; items: { id: View; label: string; icon: LucideIcon
     items: [
       { id: 'materials', label: 'Materials', icon: Boxes },
       { id: 'orders', label: 'Production orders', icon: Factory },
+      { id: 'pos', label: 'Purchase orders', icon: ClipboardList },
       { id: 'suppliers', label: 'Suppliers', icon: Truck },
       { id: 'inbox', label: 'Supplier inbox', icon: InboxIcon },
     ],
@@ -48,7 +50,7 @@ const NAV: { section: string; items: { id: View; label: string; icon: LucideIcon
 ];
 
 const VIEWS: Record<View, () => JSX.Element> = {
-  overview: Overview, alerts: Alerts, materials: Materials, orders: Orders, suppliers: Suppliers,
+  overview: Overview, alerts: Alerts, materials: Materials, orders: Orders, pos: PurchaseOrders, suppliers: Suppliers,
   allocation: Allocation, obsolescence: Obsolescence, buffers: Buffers, inbox: Inbox, assistant: Assistant,
 };
 
