@@ -18,7 +18,7 @@ A React prototype of the material-risk decision-support layer described in the
 | Safety-stock allocation visibility | **Reserved stock** — reservations drawn down by other orders |
 | Recommended safety-buffer guidance | **Safety buffers** |
 | Natural-language query interface | **Ask KingslakeAI** |
-| Supplier correspondence (unstructured email) | **Supplier inbox** — extracted delay / confirmation / EOL signals that feed the projections |
+| Supplier correspondence (unstructured email) | **Inbox and News** — extracted delay / confirmation / EOL signals that feed the projections |
 
 The **"Plan arrivals on"** switch in the top bar shows the core idea: *PO due
 date* is what the ERP alone tells you; *Typical delay* and *Cautious* use supplier

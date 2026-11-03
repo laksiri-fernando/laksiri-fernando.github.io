@@ -329,3 +329,11 @@ textarea { width: 100%; resize: vertical; }
   .kpi-grid { grid-template-columns: 1fr; }
   .kpi-card:last-child { grid-column: span 1; }
 }
+
+/* ---------- Detail pop-ups (right-side drawer) ---------- */
+.drawer .detail { position: static; max-height: none; overflow: visible; }
+.drawer-section { display: flex; flex-direction: column; gap: 8px; }
+.drawer-section h3 { font-size: 13px; color: var(--text-2); text-transform: uppercase; letter-spacing: 0.04em; }
+tr.clickable.selected td { background: var(--accent-soft); }
+.cell-title { font-weight: 600; }
+.cell-sub { font-size: 12px; color: var(--text-3); margin-top: 2px; }

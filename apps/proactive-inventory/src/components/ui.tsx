@@ -135,3 +135,17 @@ export function SimpleTable({ columns, rows, numeric = [] }: { columns: string[]
     </div>
   );
 }
+
+export interface FilterOption<T extends string> { id: T; label: string; count?: number }
+
+export function FilterChips<T extends string>({ options, value, onChange }: { options: FilterOption<T>[]; value: T; onChange: (v: T) => void }) {
+  return (
+    <>
+      {options.map((o) => (
+        <button key={o.id} className={`chip ${value === o.id ? 'on' : ''}`} onClick={() => onChange(o.id)}>
+          {o.label}{o.count !== undefined && ` (${o.count})`}
+        </button>
+      ))}
+    </>
+  );
+}
