@@ -36,7 +36,7 @@ const NAV: { section: string; items: { id: View; label: string; icon: LucideIcon
       { id: 'orders', label: 'Production orders', icon: Factory },
       { id: 'pos', label: 'Purchase orders', icon: ClipboardList },
       { id: 'suppliers', label: 'Suppliers', icon: Truck },
-      { id: 'inbox', label: 'Supplier inbox', icon: InboxIcon },
+      { id: 'inbox', label: 'Inbox and News', icon: InboxIcon },
     ],
   },
   {

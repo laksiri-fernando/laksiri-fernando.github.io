@@ -62,15 +62,19 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     const onHash = () => {
-      setView((window.location.hash.slice(1) as View) || 'overview');
+      const next = (window.location.hash.slice(1) as View) || 'overview';
+      setView(next);
       openMaterial(null);
+      // Back/forward away from Risk alerts drops the open alert pop-up.
+      if (next !== 'alerts') selectAlert(null);
     };
     window.addEventListener('hashchange', onHash);
     return () => window.removeEventListener('hashchange', onHash);
   }, []);
 
   const go = useCallback((v: View, opts?: { alertId?: string }) => {
-    if (opts?.alertId) selectAlert(opts.alertId);
+    // Alert details open in a pop-up, so only keep a selection when one is passed in.
+    selectAlert(opts?.alertId ?? null);
     openMaterial(null);
     window.location.hash = v;
     setView(v);
